@@ -15,20 +15,24 @@ func Index(c *gin.Context) {
 	}
 	response.Success(c, "ok", r)
 }
+//Input:
 func Search(c *gin.Context) {
+	type  searchInput struct {
+
+	}
 
 
 }
 func Test(c *gin.Context) {
-	type params struct {
+	type testParams struct {
 		Id   int    `json:"id"   binding:"required"`
 		Name string `json:"name" binding:"required"`
 	}
-	if err := c.ShouldBind(&params{}); err != nil {
+	if err := c.ShouldBind(&testParams{}); err != nil {
 		fmt.Println(err.Error())
 		response.Error(c, "参数错误")
 	}
-	fmt.Println(params{})
+	fmt.Println(testParams{})
 	response.Success(c,"ok","")
 	//dec := json.NewDecoder(strings.NewReader(jsonstring))
 	//fmt.Println(dec)

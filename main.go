@@ -20,6 +20,8 @@ func main() {
 		fmt.Println("Reids链接失败:", err)
 		return
 	}
+	//initialize graph
+
 	r := router.RouteInit()
 	r.Static("/static", "./static")
 	s := &http.Server{
