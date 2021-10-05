@@ -35,7 +35,7 @@ var (
 func dev() {
 	Mysql = mysqlConf{
 		Host:         "127.0.0.1",
-		Database:     "test",
+		Database:     "FYP",
 		UserName:     "root",
 		Password:     "Wsq809327698",
 		Port:         3306,
