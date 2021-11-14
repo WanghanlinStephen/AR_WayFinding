@@ -7,13 +7,15 @@ import (
 	"sync"
 )
 
+var CyberPortMap *Graph
+
 type node struct {
-	id string
-	nameEnglish string
-	nameChinese string
+	id                   string
+	nameEnglish          string
+	nameChinese          string
 	nameChineseTradition string
-	latitude string
-	longitude string
+	Latitude             string
+	Longitude            string
 }
 
 type Edge struct {
@@ -25,15 +27,11 @@ type Edge struct {
 type Graph struct {
 	sync.RWMutex
 	edge    map[string]map[string]float64
-	nodeMap map[string]node // record all the node in a graph
+	NodeMap map[string]node // record all the node in a graph
 }
 
 type Node interface {
 	NodeID() string
-}
-
-func NewNode(id string) Node {
-	return &node{id: id}
 }
 
 func (n *node) NodeID() string {
@@ -47,7 +45,7 @@ func NewEdge(src Node, dst Node, w float64) *Edge {
 func NewGraph() *Graph {
 	return &Graph{
 		edge:    make(map[string]map[string]float64),
-		nodeMap: make(map[string]node),
+		NodeMap: make(map[string]node),
 	}
 }
 
@@ -66,8 +64,8 @@ func (g *Graph) AddEdge(nodeID1 node, nodeID2 node, w float64) {
 	}
 
 	// record each vertex
-	g.nodeMap[nodeID1.id] = nodeID1
-	g.nodeMap[nodeID2.id] = nodeID2
+	g.NodeMap[nodeID1.id] = nodeID1
+	g.NodeMap[nodeID2.id] = nodeID2
 
 	if _, ok := g.edge[nodeID1.id]; ok {
 		g.edge[nodeID1.id][nodeID2.id] = w
@@ -80,12 +78,6 @@ func (g *Graph) AddEdge(nodeID1 node, nodeID2 node, w float64) {
 
 //restore data from database and initialize graph.
 func Initialization() {
-	//fixme:测试后删除
-	//config.Run()
-	//if err := model.Run(); err != nil {
-	//	fmt.Println("数据库链接失败:", err)
-	//	return
-	//}
 	g := NewGraph()
 	//fixme:修复
 	connectionsList,_:=model.GetConnectionsList()
@@ -93,29 +85,31 @@ func Initialization() {
 		source:=node{
 			id:                   fmt.Sprint(value.Source.Id),
 			nameEnglish:          value.Source.NameEnglish,
+			nameChinese:          value.Source.NameChinese,
+			nameChineseTradition: value.Source.NameTraditionalChinese,
+			Latitude:			  fmt.Sprint(value.Source.Latitude),
+			Longitude:			  fmt.Sprint(value.Source.Longitude),
 		}
 		destination:=node{
 			id:                   fmt.Sprint(value.Destination.Id),
 			nameEnglish:          value.Destination.NameEnglish,
+			nameChinese:          value.Destination.NameChinese,
+			nameChineseTradition: value.Destination.NameTraditionalChinese,
+			Latitude:			  fmt.Sprint(value.Destination.Latitude),
+			Longitude:			  fmt.Sprint(value.Destination.Longitude),
 		}
 		g.AddEdge(source,destination,float64(value.Time))
 	}
-	fmt.Println(g)
-	shortDis:=g.Dijkstra("1","2")
-	fmt.Println("A->E shortest distance is:", shortDis)
+	CyberPortMap =g
+
+	//todo:test model
+	source:=g.NodeMap["1"]
+	destination:=g.NodeMap["3"]
+	//todo:test next step
+	shortestDistance,nextStep:=CyberPortMap.Dijkstra(source.id,destination.id)
+	//todo:test direction
+	direction,angle:=GetAngle(source.Longitude,source.Latitude,destination.Longitude,destination.Latitude)
+	fmt.Printf("Source:%s to Destination%s with next step %s with a total weight %f,with a direction of %s, with an angle of %f",source.id,destination.id,nextStep,shortestDistance,direction, angle)
+
+
 }
-//
-//func main() {
-//	g := NewGraph()
-//	g.AddEdge("A", "B", 3)
-//	g.AddEdge("A", "C", 2)
-//	g.AddEdge("B", "E", 5)
-//	g.AddEdge("B", "D", 2)
-//	g.AddEdge("D", "E", -2)
-//	g.AddEdge("C", "F", 1)
-//	g.AddEdge("E", "F", 3)
-//
-//	fmt.Println(g)
-//	shortDis := g.Dijkstra("A", "E")
-//	fmt.Println("A->E shortest distance is:", shortDis)
-//}

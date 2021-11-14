@@ -27,7 +27,6 @@ var (
 	Limit = 20
 	//PathRoot 项目静态资源目录
 	PathRoot = "/"
-
 	Code = codeConf{1, 0}
 )
 
