@@ -27,7 +27,6 @@ var (
 	Limit = 20
 	//PathRoot 项目静态资源目录
 	PathRoot = "/"
-
 	Code = codeConf{1, 0}
 )
 
@@ -35,7 +34,7 @@ var (
 func dev() {
 	Mysql = mysqlConf{
 		Host:         "127.0.0.1",
-		Database:     "test",
+		Database:     "FYP",
 		UserName:     "root",
 		Password:     "Wsq809327698",
 		Port:         3306,

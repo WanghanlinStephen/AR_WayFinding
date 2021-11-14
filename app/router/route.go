@@ -22,6 +22,13 @@ func router(route *gin.Engine) *gin.Engine {
 		visitorAPI.GET("test", server.Test)
 		visitorAPI.GET("search",server.Search)
 	}
+	//授权用户, 需要登陆
+	adminAPI := v1.Group("/admin")
+	{
+		adminAPI.POST("add",server.Add)
+		//adminAPI.DELETE("delete",server.Delete)
+		//adminAPI.POST("modify",server.Modify)
+	}
 
 	return route
 }

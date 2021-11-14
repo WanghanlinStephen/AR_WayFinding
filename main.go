@@ -6,6 +6,7 @@ import (
 	"pro/app/cache"
 	"pro/app/model"
 	"pro/app/router"
+	"pro/app/strategy"
 	"pro/config"
 	"time"
 )
@@ -20,6 +21,8 @@ func main() {
 		fmt.Println("Reids链接失败:", err)
 		return
 	}
+	//initialize graph
+	strategy.Initialization()
 	r := router.RouteInit()
 	r.Static("/static", "./static")
 	s := &http.Server{
