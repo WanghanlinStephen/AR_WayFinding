@@ -25,9 +25,18 @@ func router(route *gin.Engine) *gin.Engine {
 	//授权用户, 需要登陆
 	adminAPI := v1.Group("/admin")
 	{
-		adminAPI.POST("add",server.Add)
-		//adminAPI.DELETE("delete",server.Delete)
-		//adminAPI.POST("modify",server.Modify)
+		addAPI := adminAPI.Group("/add")
+		{ 
+			addAPI.POST("node",server.AddNode)
+			addAPI.POST("connection",server.AddConnection)
+		}
+
+		deleteAPI := adminAPI.Group("/delete")
+		{
+			deleteAPI.DELETE("node",server.DeleteNode)
+			deleteAPI.DELETE("connection",server.DeleteConnection)
+		}
+
 	}
 
 	return route

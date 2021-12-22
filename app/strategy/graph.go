@@ -16,6 +16,8 @@ type node struct {
 	nameChineseTradition string
 	Latitude             string
 	Longitude            string
+	//the angle between wall and horizontal direction
+	IntersectionalAngle  float64
 }
 
 type Edge struct {
@@ -89,6 +91,7 @@ func Initialization() {
 			nameChineseTradition: value.Source.NameTraditionalChinese,
 			Latitude:			  fmt.Sprint(value.Source.Latitude),
 			Longitude:			  fmt.Sprint(value.Source.Longitude),
+			IntersectionalAngle:  value.Source.IntersectionalAngle,
 		}
 		destination:=node{
 			id:                   fmt.Sprint(value.Destination.Id),
@@ -97,19 +100,9 @@ func Initialization() {
 			nameChineseTradition: value.Destination.NameTraditionalChinese,
 			Latitude:			  fmt.Sprint(value.Destination.Latitude),
 			Longitude:			  fmt.Sprint(value.Destination.Longitude),
+			IntersectionalAngle:  value.Destination.IntersectionalAngle,
 		}
 		g.AddEdge(source,destination,float64(value.Time))
 	}
 	CyberPortMap =g
-
-	//todo:test model
-	source:=g.NodeMap["1"]
-	destination:=g.NodeMap["3"]
-	//todo:test next step
-	shortestDistance,nextStep:=CyberPortMap.Dijkstra(source.id,destination.id)
-	//todo:test direction
-	direction,angle:=GetAngle(source.Longitude,source.Latitude,destination.Longitude,destination.Latitude)
-	fmt.Printf("Source:%s to Destination%s with next step %s with a total weight %f,with a direction of %s, with an angle of %f",source.id,destination.id,nextStep,shortestDistance,direction, angle)
-
-
 }
