@@ -10,7 +10,6 @@ type AddNodeInput struct {
 }
 
 type AddConnectionInput struct {
-	Id int
 	SourceId int
 	DestinationId int
 	Weight int

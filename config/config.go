@@ -8,7 +8,7 @@ import (
 
 var (
 	//HTTP 监听的端口号
-	HTTPPort uint = 3001
+	HTTPPort uint = 3000
 	//Mode 运行模式
 	Mode = "dev"
 	//Mysql 数据库信息
@@ -32,6 +32,8 @@ var (
 
 //开发模式
 func dev() {
+	//线上数据库密码:"D321.com",
+	//线下数据库密码:"Wsq809327698",
 	Mysql = mysqlConf{
 		Host:         "127.0.0.1",
 		Database:     "FYP",

@@ -56,6 +56,60 @@ func Test(c *gin.Context) {
 	//dec := json.NewDecoder(strings.NewReader(jsonstring))
 	//fmt.Println(dec)
 }
+func GetNodes(c *gin.Context) {
+	//fixme:第二个版本加上页面的概念
+
+	nodeMap, err :=model.GetNodes();
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	nodes:=make([]models.Node,0)
+	for _, node := range nodeMap {
+		nodes=append(nodes,node);
+	}
+	responseData := &models.GetNodesOutput{
+		Nodes:nodes,
+	}
+	response.Success(c,"ok",responseData)
+}
+
+func GetNodeId(c *gin.Context) {
+	if err := c.ShouldBind(&models.Node{}); err != nil {
+		fmt.Println(err.Error())
+		response.Error(c, "参数错误")
+	}
+	latitude,_:=strconv.ParseFloat(c.Query("latitude"), 64);
+	longitude,_:=strconv.ParseFloat(c.Query("longitude"), 64);
+	newNode:=models.Node{
+		Latitude:               latitude,
+		Longitude:              longitude,
+	}
+	nodeId,err:=model.GetNodeID(newNode)
+	if err!=nil{
+		response.Error(c,"GetNodeID 失败")
+		return
+	}
+	responseData := &models.Node{
+		Id: nodeId,
+	}
+	response.Success(c,"ok",responseData)
+
+}
+func GetConnections(c *gin.Context) {
+	//fixme:第二个版本加上页面的概念
+	connections, err :=model.GetConnectionsList();
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	responseData := &models.GetConnectionsOutput{
+		Connections: connections,
+	}
+	response.Success(c,"ok",responseData)
+}
+
 
 //Admin Section
 func AddNode(c *gin.Context) {
@@ -66,14 +120,12 @@ func AddNode(c *gin.Context) {
 		return
 	}
 	//Modify Database
-	id,_:=strconv.Atoi(c.Query("id"));
-	latitude,_:=strconv.ParseFloat(c.Query("latitude"), 64);
-	longitude,_:=strconv.ParseFloat(c.Query("longitude"), 64);
+	latitude,_:=strconv.ParseFloat(c.PostForm("latitude"), 64);
+	longitude,_:=strconv.ParseFloat(c.PostForm("longitude"), 64);
 	newNode:=models.AddNodeInput{
-		Id:                     id,
-		NameEnglish:            c.Query("nameEnglish"),
-		NameChinese:            c.Query("nameChinese"),
-		NameTraditionalChinese: c.Query("nameTraditionalChinese"),
+		NameEnglish:            c.PostForm("nameEnglish"),
+		NameChinese:            c.PostForm("nameChinese"),
+		NameTraditionalChinese: c.PostForm("nameTraditionalChinese"),
 		Latitude:               latitude,
 		Longitude:              longitude,
 	}
@@ -93,67 +145,130 @@ func AddConnection(c *gin.Context) {
 		return
 	}
 	//Modify Database
-	id,_:=strconv.Atoi(c.Query("id"));
-	sourceId,_:=strconv.Atoi(c.Query("sourceId"));
-	destinationId,_:=strconv.Atoi(c.Query("destinationId"));
-	weight,_:=strconv.Atoi(c.Query("weight"));
+	sourceLatitude,_:=strconv.ParseFloat(c.PostForm("sourceLatitude"), 64);
+	sourceLongitude,_:=strconv.ParseFloat(c.PostForm("sourceLongitude"), 64);
+	destinationLatitude,_:=strconv.ParseFloat(c.PostForm("destinationLatitude"), 64);
+	destinationLongitude,_:=strconv.ParseFloat(c.PostForm("destinationLongitude"), 64);
+	weight,_:=strconv.Atoi(c.PostForm("weight"));
+	//fixme:获取sourceID 和 destinationID
+	sourceId,err := model.GetNodeID(models.Node{
+		Latitude:               sourceLatitude,
+		Longitude:              sourceLongitude,
+	})
+	if err!=nil{
+		response.Error(c,"AddConnection 失败")
+		return
+	}
+	destinationId,err := model.GetNodeID(models.Node{
+		Latitude:               destinationLatitude,
+		Longitude:              destinationLongitude,
+	})
+	if err!=nil{
+		response.Error(c,"AddConnection 失败")
+		return
+	}
 
 	newConnection:=models.AddConnectionInput{
-		Id:            id,
 		SourceId:      sourceId,
 		DestinationId: destinationId ,
 		Weight:        weight,
 	}
-	err:=model.AddConnection(c,newConnection)
+	err=model.AddConnection(c,newConnection)
 	if err!=nil{
 		response.Error(c,"AddConnection 失败")
 		return
 	}
 	response.Success(c,"ok","")
-
 }
 
-
-func DeleteNode(c *gin.Context) {
-	if err := c.ShouldBind(&models.DeleteNodeInput{}); err != nil {
+func Delete(c *gin.Context) {
+	if err := c.ShouldBind(&models.DeleteInput{}); err != nil {
 		fmt.Println(err.Error())
 		response.Error(c, "参数错误")
 		return
 	}
-	//Modify Database
-	id,_:=strconv.Atoi(c.Query("id"));
-	deleteNode:=models.DeleteNodeInput{
-		Id:						id,
+	//Delete Node
+	latitude,_:=strconv.ParseFloat(c.PostForm("nodeLatitude"), 64);
+	longitude,_:=strconv.ParseFloat(c.PostForm("nodeLongitude"), 64);
+	nodeId,err:=model.GetNodeID(models.Node{
+		Latitude:               latitude,
+		Longitude:              longitude,
+	})
+	if err!=nil{
+		response.Error(c,"GetNodeID 失败")
+		return
 	}
-	err:=model.DeleteNode(c,deleteNode)
+
+	deleteNode:=models.DeleteNodeInput{
+		Id:			nodeId,
+	}
+	err=model.DeleteNode(c,deleteNode)
 	if err!=nil{
 		response.Error(c,"DeleteNode 失败")
 		return
 	}
-
+	//get all connection ids
+	var connectionIdList = make([]int,0)
+	fmt.Println(strategy.ConnectionsList);
+	for _,value := range strategy.ConnectionsList{
+		if value.Source.Id!=nodeId && value.Destination.Id!=nodeId{
+			continue;
+		}
+		connectionIdList=append(connectionIdList,value.Id);
+	}
+	//Delete Connections
+	for _,value :=range connectionIdList{
+		deleteConnection:=models.DeleteConnectionInput{
+			Id:						value,
+		}
+		err = model.DeleteConnection(c, deleteConnection)
+		if err!=nil{
+			response.Error(c,"DeleteConnection 失败")
+			return
+		}
+	}
 	response.Success(c,"ok","")
 }
 
-func DeleteConnection(c *gin.Context) {
-	if err := c.ShouldBind(&models.DeleteConnectionInput{}); err != nil {
-		fmt.Println(err.Error())
-		response.Error(c, "参数错误")
-		return
-	}
-	//Modify Database
-	id,_:=strconv.Atoi(c.Query("id"));
-	deleteNode:=models.DeleteConnectionInput{
-		Id:						id,
-	}
-	err:=model.DeleteConnection(c,deleteNode)
-	if err!=nil{
-		response.Error(c,"DeleteConnection 失败")
-		return
-	}
+//func DeleteNode(c *gin.Context) {
+//	if err := c.ShouldBind(&models.DeleteNodeInput{}); err != nil {
+//		fmt.Println(err.Error())
+//		response.Error(c, "参数错误")
+//		return
+//	}
+//	//Modify Database
+//	id,_:=strconv.Atoi(c.Query("id"));
+//	deleteNode:=models.DeleteNodeInput{
+//		Id:						id,
+//	}
+//	err:=model.DeleteNode(c,deleteNode)
+//	if err!=nil{
+//		response.Error(c,"DeleteNode 失败")
+//		return
+//	}
+//
+//	response.Success(c,"ok","")
+//}
 
-	response.Success(c,"ok","")
-
-}
+//func DeleteConnection(c *gin.Context) {
+//	if err := c.ShouldBind(&models.DeleteConnectionInput{}); err != nil {
+//		fmt.Println(err.Error())
+//		response.Error(c, "参数错误")
+//		return
+//	}
+//	//Modify Database
+//	id,_:=strconv.Atoi(c.Query("id"));
+//	deleteConnection:=models.DeleteConnectionInput{
+//		Id:						id,
+//	}
+//	err:=model.DeleteConnection(c,deleteConnection)
+//	if err!=nil{
+//		response.Error(c,"DeleteConnection 失败")
+//		return
+//	}
+//	response.Success(c,"ok","")
+//
+//}
 func Modify(c *gin.Context) {
 	if err := c.ShouldBind(&models.ModifyInput{}); err != nil {
 		fmt.Println(err.Error())

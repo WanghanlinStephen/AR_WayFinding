@@ -4,10 +4,12 @@ import (
 	"fmt"
 	_ "github.com/davecgh/go-spew/spew"
 	"pro/app/model"
+	"pro/app/models"
 	"sync"
 )
 
 var CyberPortMap *Graph
+var ConnectionsList []models.Connection
 
 type node struct {
 	id                   string
@@ -82,8 +84,10 @@ func (g *Graph) AddEdge(nodeID1 node, nodeID2 node, w float64) {
 func Initialization() {
 	g := NewGraph()
 	//fixme:修复
-	connectionsList,_:=model.GetConnectionsList()
-	for _,value := range connectionsList{
+	ConnectionsList,_=model.GetConnectionsList()
+	value:=ConnectionsList;
+	fmt.Println(value);
+	for _,value := range ConnectionsList{
 		source:=node{
 			id:                   fmt.Sprint(value.Source.Id),
 			nameEnglish:          value.Source.NameEnglish,

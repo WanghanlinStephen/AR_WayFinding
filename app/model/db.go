@@ -3,7 +3,6 @@ package model
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"pro/config"
 )
 

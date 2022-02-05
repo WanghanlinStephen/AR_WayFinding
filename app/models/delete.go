@@ -6,3 +6,7 @@ type DeleteNodeInput struct {
 type DeleteConnectionInput struct {
 	Id int
 }
+
+type DeleteInput struct {
+	Id int
+}

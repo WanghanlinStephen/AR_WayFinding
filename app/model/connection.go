@@ -1,17 +1,12 @@
 package model
 
-type Connection struct {
-	Id int
-	Source Node
-	Destination Node
-	Time int
-}
+import "pro/app/models"
 
-func GetConnectionsMap() (connectionMap map[int]Connection, err error) {
+func GetConnectionsMap() (connectionMap map[int]models.Connection, err error) {
 	//fixme:等待优化
 	sql:="select c.id,n1.id,n1.name_english,n1.name_chinese,n1.name_traditional_chinese,n1.latitude,n1.longitude,n2.id,n2.name_english,n2.name_chinese,n2.name_traditional_chinese,n2.latitude,n2.longitudec,n2.weight from connection AS c,node AS n1,node As n2 where c.source=n1.id and c.destination=n2.id"
-	connection := Connection{}
-	var result = make(map[int]Connection)
+	connection := models.Connection{}
+	var result = make(map[int]models.Connection)
 	rows,err := Db.Query(sql)
 	for rows.Next() {
 		err = rows.Scan(&connection.Id,&connection.Source.Id,&connection.Source.NameEnglish,&connection.Source.NameChinese,&connection.Source.NameTraditionalChinese,&connection.Source.Latitude,&connection.Source.Longitude,&connection.Destination.Id,&connection.Destination.NameEnglish,&connection.Source.NameChinese,&connection.Source.NameTraditionalChinese,&connection.Source.Latitude,&connection.Source.Longitude,&connection.Time)
@@ -22,12 +17,12 @@ func GetConnectionsMap() (connectionMap map[int]Connection, err error) {
 }
 
 
-func GetConnectionsList() (connectionMap []Connection, err error) {
+func GetConnectionsList() (connectionList []models.Connection, err error) {
 	//fixme:等待优化
 	sql:="select c.id,n1.id,n1.name_english,n1.name_chinese,n1.name_traditional_chinese,n1.latitude,n1.longitude,n1.intersectional_angle,n2.id,n2.name_english,n2.name_chinese,n2.name_traditional_chinese,n2.latitude,n2.longitude,n2.intersectional_angle,c.weight from connection AS c,node AS n1,node As n2 where c.source=n1.id and c.destination=n2.id"
 	//sql:="select c.id,n1.id,n1.name_english,n2.id,n2.name_english,c.weight from connection AS c,node AS n1,node As n2 where c.source=n1.id and c.destination=n2.id"
-	connection := Connection{}
-	var result = make([]Connection,0)
+	connection := models.Connection{}
+	var result = make([]models.Connection,0)
 	rows,err := Db.Query(sql)
 	for rows.Next() {
 		err = rows.Scan(&connection.Id,&connection.Source.Id,&connection.Source.NameEnglish,&connection.Source.NameChinese,&connection.Source.NameTraditionalChinese,&connection.Source.Latitude,&connection.Source.Longitude,&connection.Source.IntersectionalAngle,&connection.Destination.Id,&connection.Destination.NameEnglish,&connection.Destination.NameChinese,&connection.Destination.NameTraditionalChinese,&connection.Destination.Latitude,&connection.Destination.Longitude,&connection.Destination.IntersectionalAngle,&connection.Time)

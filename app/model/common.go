@@ -13,7 +13,7 @@ func checkErr(err error) {
 }
 
 func AddNode(c *gin.Context,node models.AddNodeInput) error{
-	if _, err := Db.Exec("insert into node set id=?, name_english=?, name_chinese=?,name_traditional_chinese=?,longitude=?,latitude=?,intersectional_angle=?",node.Id,node.NameEnglish,node.NameChinese,node.NameTraditionalChinese,node.Longitude,node.Latitude,node.IntersectionalAngle); err != nil {
+	if _, err := Db.Exec("insert into node (name_english,name_chinese,name_traditional_chinese,latitude,longitude,intersectional_angle) VALUES (?,?,?,?,?,?);",node.NameEnglish,node.NameChinese,node.NameTraditionalChinese,node.Longitude,node.Latitude,node.IntersectionalAngle); err != nil {
 		return err
 	}
 	return nil
@@ -21,6 +21,7 @@ func AddNode(c *gin.Context,node models.AddNodeInput) error{
 
 
 func DeleteNode(c *gin.Context,node models.DeleteNodeInput) error{
+	//fixme：search layer
 	if _, err := Db.Exec("delete from node where id=?",node.Id); err != nil {
 		return err
 	}
@@ -28,6 +29,7 @@ func DeleteNode(c *gin.Context,node models.DeleteNodeInput) error{
 }
 
 func DeleteConnection(c *gin.Context,node models.DeleteConnectionInput) error{
+	//fimxe: search layer
 	if _, err := Db.Exec("delete from connection where id=?",node.Id); err != nil {
 		return err
 	}
@@ -35,15 +37,20 @@ func DeleteConnection(c *gin.Context,node models.DeleteConnectionInput) error{
 }
 
 func AddConnection(c *gin.Context,connection models.AddConnectionInput) error{
-	if _, err := Db.Exec("insert into connection (id,source,destination,weight) VALUES (?,?,?,?);",connection.Id,connection.SourceId,connection.DestinationId,connection.Weight); err != nil {
+	if _, err := Db.Exec("insert into connection (source,destination,weight) VALUES (?,?,?);",connection.SourceId,connection.DestinationId,connection.Weight); err != nil {
 		return err
 	}
 	return nil
 }
-//
-//func UpdateNode(c *gin.Context,node models.ModifyInput) {
-//	if _, err := Db.Exec("update into node set id=?, name_english=?, name_chinese=?,name_traditional_chinese=?,longitude=?,latitude=?",node.Id,node.NameEnglish,node.NameChinese,node.NameTraditionalChinese,node.Longitude,node.Latitude); err != nil {
-//		panic(err)
-//	}
-//	c.AbortWithStatus(204)
-//}
+
+
+func GetNodeID(node models.Node) (int,error) {
+	//fixme:等待优化
+	var nodeId int
+	rows,err := Db.Query("select id from node AS n where n.latitude=? and n.longitude=?",node.Latitude,node.Longitude)
+	for rows.Next(){
+		err = rows.Scan(&nodeId)
+		checkErr(err)
+	}
+	return nodeId, nil
+}
