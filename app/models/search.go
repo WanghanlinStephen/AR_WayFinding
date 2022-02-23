@@ -8,3 +8,12 @@ type SearchInput struct {
 type SearchOutput struct {
 	Angle 	float64
 }
+
+type FetchPathInput struct {
+	Source string
+	Destination string
+}
+
+type FetchPathOutput struct {
+	Path []Node
+}

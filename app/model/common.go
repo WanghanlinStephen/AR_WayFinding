@@ -28,11 +28,22 @@ func DeleteNode(c *gin.Context,node models.DeleteNodeInput) error{
 	return nil
 }
 
-func DeleteConnection(c *gin.Context,node models.DeleteConnectionInput) error{
+func DeleteConnectionByID(c *gin.Context,node models.DeleteConnectionByIDInput) error{
 	//fimxe: search layer
 	if _, err := Db.Exec("delete from connection where id=?",node.Id); err != nil {
 		return err
 	}
+	return nil
+}
+
+func DeleteConnectionByNode(c *gin.Context,node models.DeleteConnectionByNodeInput) error{
+	if _, err := Db.Exec("delete from connection where source=? and destination=?",node.SourceId,node.DestinationId); err != nil {
+		return err
+	}
+	if _, err := Db.Exec("delete from connection where source=? and destination=?",node.DestinationId,node.SourceId); err != nil {
+		return err
+	}
+
 	return nil
 }
 

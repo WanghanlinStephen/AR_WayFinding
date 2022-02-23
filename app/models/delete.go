@@ -3,8 +3,13 @@ type DeleteNodeInput struct {
 	Id int
 }
 
-type DeleteConnectionInput struct {
+type DeleteConnectionByIDInput struct {
 	Id int
+}
+
+type DeleteConnectionByNodeInput struct {
+	SourceId int
+	DestinationId int
 }
 
 type DeleteInput struct {

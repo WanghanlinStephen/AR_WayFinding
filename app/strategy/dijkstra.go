@@ -1,6 +1,7 @@
 package strategy
 
 import (
+	"fmt"
 	"math"
 )
 
@@ -12,7 +13,7 @@ func reverseArrays(input []string)[]string{
 }
 
 //fixme:未获取数据
-func (g *Graph) Dijkstra(src string, dst string) (shortDis float64,lastPointer string) {
+func (g *Graph) Dijkstra(src string, dst string) (shortDis float64,lastPointer string,fullPathway []string) {
 
 	// path:store previous node
 	path:=make(map[string]string)
@@ -38,7 +39,7 @@ func (g *Graph) Dijkstra(src string, dst string) (shortDis float64,lastPointer s
 		v := q.Pop()
 		e, ok := v.(string)
 		if !ok {
-			return 0,""
+			return 0,"",nil
 		}
 
 		for nodeID := range g.NodeMap {
@@ -73,5 +74,7 @@ func (g *Graph) Dijkstra(src string, dst string) (shortDis float64,lastPointer s
 	}else{
 		nextStep="-1"
 	}
-	return distance[dst],nextStep
+	fullPath:=pathList[dst]
+	fmt.Println(fullPath)
+	return distance[dst],nextStep,fullPath
 }

@@ -12,10 +12,10 @@ var CyberPortMap *Graph
 var ConnectionsList []models.Connection
 
 type node struct {
-	id                   string
-	nameEnglish          string
-	nameChinese          string
-	nameChineseTradition string
+	Id                   string
+	NameEnglish          string
+	NameChinese          string
+	NameChineseTradition string
 	Latitude             string
 	Longitude            string
 	//the angle between wall and horizontal direction
@@ -39,7 +39,7 @@ type Node interface {
 }
 
 func (n *node) NodeID() string {
-	return n.id
+	return n.Id
 }
 
 func NewEdge(src Node, dst Node, w float64) *Edge {
@@ -68,15 +68,15 @@ func (g *Graph) AddEdge(nodeID1 node, nodeID2 node, w float64) {
 	}
 
 	// record each vertex
-	g.NodeMap[nodeID1.id] = nodeID1
-	g.NodeMap[nodeID2.id] = nodeID2
+	g.NodeMap[nodeID1.Id] = nodeID1
+	g.NodeMap[nodeID2.Id] = nodeID2
 
-	if _, ok := g.edge[nodeID1.id]; ok {
-		g.edge[nodeID1.id][nodeID2.id] = w
+	if _, ok := g.edge[nodeID1.Id]; ok {
+		g.edge[nodeID1.Id][nodeID2.Id] = w
 	} else {
 		tempMap := make(map[string]float64)
-		tempMap[nodeID2.id] = w
-		g.edge[nodeID1.id] = tempMap
+		tempMap[nodeID2.Id] = w
+		g.edge[nodeID1.Id] = tempMap
 	}
 }
 
@@ -89,19 +89,19 @@ func Initialization() {
 	fmt.Println(value);
 	for _,value := range ConnectionsList{
 		source:=node{
-			id:                   fmt.Sprint(value.Source.Id),
-			nameEnglish:          value.Source.NameEnglish,
-			nameChinese:          value.Source.NameChinese,
-			nameChineseTradition: value.Source.NameTraditionalChinese,
+			Id:                   fmt.Sprint(value.Source.Id),
+			NameEnglish:          value.Source.NameEnglish,
+			NameChinese:          value.Source.NameChinese,
+			NameChineseTradition: value.Source.NameTraditionalChinese,
 			Latitude:			  fmt.Sprint(value.Source.Latitude),
 			Longitude:			  fmt.Sprint(value.Source.Longitude),
 			IntersectionalAngle:  value.Source.IntersectionalAngle,
 		}
 		destination:=node{
-			id:                   fmt.Sprint(value.Destination.Id),
-			nameEnglish:          value.Destination.NameEnglish,
-			nameChinese:          value.Destination.NameChinese,
-			nameChineseTradition: value.Destination.NameTraditionalChinese,
+			Id:                   fmt.Sprint(value.Destination.Id),
+			NameEnglish:          value.Destination.NameEnglish,
+			NameChinese:          value.Destination.NameChinese,
+			NameChineseTradition: value.Destination.NameTraditionalChinese,
 			Latitude:			  fmt.Sprint(value.Destination.Latitude),
 			Longitude:			  fmt.Sprint(value.Destination.Longitude),
 			IntersectionalAngle:  value.Destination.IntersectionalAngle,

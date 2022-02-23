@@ -22,6 +22,7 @@ func router(route *gin.Engine) *gin.Engine {
 		visitorAPI.GET("index", server.Index)
 		visitorAPI.GET("test", server.Test)
 		visitorAPI.GET("search",server.Search)
+		visitorAPI.GET("path",server.FetchPath)
 		visitorAPI.GET("nodes",server.GetNodes)
 		visitorAPI.GET("connections",server.GetConnections)
 	}
@@ -37,7 +38,7 @@ func router(route *gin.Engine) *gin.Engine {
 		deleteAPI := adminAPI.Group("/delete")
 		{
 			//deleteAPI.DELETE("node",server.DeleteNode)
-			//deleteAPI.DELETE("connection",server.DeleteConnection)
+			deleteAPI.POST("connection",server.DeleteConnection)
 			deleteAPI.POST("both",server.Delete)
 		}
 
