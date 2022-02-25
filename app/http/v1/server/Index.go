@@ -315,3 +315,32 @@ func Modify(c *gin.Context) {
 
 	response.Success(c,"ok","")
 }
+//no input required
+func FetchMaps(c *gin.Context){
+	maps,err := model.GetMaps()
+	if err!=nil{
+		response.Error(c,"FetchMaps 失败")
+		return
+	}
+	responseData := &models.GetMapsOutput{
+		Maps:     maps,
+	}
+	response.Success(c,"ok",responseData)
+}
+func FetchMapByName(c *gin.Context){
+	if err := c.ShouldBind(&models.GetMapByNameInput{}); err != nil {
+		fmt.Println(err.Error())
+		response.Error(c, "参数错误")
+		return
+	}
+	name := c.Query("name")
+	mapInstance,err := model.GetMapByName(name)
+	if err!=nil{
+		response.Error(c,"FetchMapByName 失败")
+		return
+	}
+	responseData := &models.GetMapByNameOutput{
+		Map:     mapInstance,
+	}
+	response.Success(c,"ok",responseData)
+}

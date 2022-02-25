@@ -24,8 +24,8 @@ func main() {
 	//initialize graph
 	strategy.Initialization()
 	r := router.RouteInit()
-	//r.RunTLS(":8080", "./ssl/fullchain.pem", "./ssl/privkey.pem")
-	//r.Static("/static", "./static")
+	r.RunTLS(":8080", "./ssl/fullchain.pem", "./ssl/privkey.pem")
+	r.Static("/static", "./static")
 	s := &http.Server{
 		Addr:           fmt.Sprintf(":%d", config.HTTPPort),
 		Handler:        r,

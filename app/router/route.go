@@ -46,6 +46,12 @@ func router(route *gin.Engine) *gin.Engine {
 		{
 			indexAPI.GET("nodeId",server.GetNodeId)
 		}
+		mapAPI := adminAPI.Group("/map")
+		{
+			mapAPI.GET("all",server.FetchMaps)
+			mapAPI.GET("name",server.FetchMapByName)
+
+		}
 
 	}
 
@@ -64,10 +70,10 @@ func RouteInit() *gin.Engine {
 	}
 	route.Use(gin.Recovery()) // 捕捉异常
 	route.Use(middle.Access)
-	//route.Use(Cors())
+	route.Use(Cors())
 	//https config
 
-	//route.Use(TlsHandler())
+	route.Use(TlsHandler())
 
 	return router(route)
 }

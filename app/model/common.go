@@ -65,3 +65,26 @@ func GetNodeID(node models.Node) (int,error) {
 	}
 	return nodeId, nil
 }
+
+func GetMaps()([]models.Map,error){
+	rows,err := Db.Query("select * from map")
+	mapInstance := models.Map{}
+	var maps = make([]models.Map,0)
+
+	for rows.Next(){
+		err = rows.Scan(&mapInstance.Id,&mapInstance.Name,&mapInstance.Url)
+		checkErr(err)
+		maps=append(maps,mapInstance)
+	}
+	return maps, nil
+}
+
+func GetMapByName(name string)(models.Map,error){
+	rows,err := Db.Query("select * from map where map.name=?",name)
+	mapInstance := models.Map{}
+	for rows.Next(){
+		err = rows.Scan(&mapInstance.Id,&mapInstance.Url,&mapInstance.Name)
+		checkErr(err)
+	}
+	return mapInstance,nil
+}
