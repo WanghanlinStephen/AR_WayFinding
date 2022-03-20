@@ -9,6 +9,7 @@ type Node struct {
 	Latitude float64
 	Longitude float64
 	IntersectionalAngle float64
+	IsStaircase int
 }
 
 
@@ -17,6 +18,7 @@ type Connection struct {
 	Source Node
 	Destination Node
 	Time int
+	MapId int
 }
 
 type GetNodeOutput struct {
@@ -24,6 +26,12 @@ type GetNodeOutput struct {
 }
 
 type GetNodesOutput struct {
+	Nodes []Node
+}
+type GetNodesByMapId struct {
+	Id int
+}
+type GetNodesByMapIdOutput struct {
 	Nodes []Node
 }
 
@@ -39,13 +47,20 @@ type Map struct {
 	Id int
 	Name string
 	Url string
+	Floor int
 }
 type GetMapsOutput struct {
 	Maps []Map
+}
+type GetMapByIdInput struct {
+	Id int
 }
 type GetMapByNameInput struct {
 	Name string
 }
 type GetMapByNameOutput struct {
 	Map Map
+}
+type GetMapNamesOutput struct {
+	Names []string
 }

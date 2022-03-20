@@ -20,6 +20,8 @@ type node struct {
 	Longitude            string
 	//the angle between wall and horizontal direction
 	IntersectionalAngle  float64
+	MapId				 int
+	IsStaircase			 int
 }
 
 type Edge struct {
@@ -96,6 +98,8 @@ func Initialization() {
 			Latitude:			  fmt.Sprint(value.Source.Latitude),
 			Longitude:			  fmt.Sprint(value.Source.Longitude),
 			IntersectionalAngle:  value.Source.IntersectionalAngle,
+			MapId:				  value.MapId,
+			IsStaircase:		  value.Source.IsStaircase,
 		}
 		destination:=node{
 			Id:                   fmt.Sprint(value.Destination.Id),
@@ -105,6 +109,8 @@ func Initialization() {
 			Latitude:			  fmt.Sprint(value.Destination.Latitude),
 			Longitude:			  fmt.Sprint(value.Destination.Longitude),
 			IntersectionalAngle:  value.Destination.IntersectionalAngle,
+			MapId:				  value.MapId,
+			IsStaircase:		  value.Destination.IsStaircase,
 		}
 		g.AddEdge(source,destination,float64(value.Time))
 	}

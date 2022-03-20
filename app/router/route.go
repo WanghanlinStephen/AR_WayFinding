@@ -23,8 +23,13 @@ func router(route *gin.Engine) *gin.Engine {
 		visitorAPI.GET("test", server.Test)
 		visitorAPI.GET("search",server.Search)
 		visitorAPI.GET("path",server.FetchPath)
-		visitorAPI.GET("nodes",server.GetNodes)
 		visitorAPI.GET("connections",server.GetConnections)
+
+		nodeAPI := visitorAPI.Group("/nodes")
+		{
+			nodeAPI.GET("all",server.GetNodes)
+			nodeAPI.GET("map",server.GetNodesByMapId)
+		}
 	}
 	//授权用户, 需要登陆
 	adminAPI := v1.Group("/admin")
@@ -33,6 +38,8 @@ func router(route *gin.Engine) *gin.Engine {
 		{ 
 			addAPI.POST("node",server.AddNode)
 			addAPI.POST("connection",server.AddConnection)
+			//addAPI.POST("staircase",server.AddStaircase)
+			//addAPI.POST("emergent",server.AddEmergent)
 		}
 
 		deleteAPI := adminAPI.Group("/delete")
@@ -46,13 +53,15 @@ func router(route *gin.Engine) *gin.Engine {
 		{
 			indexAPI.GET("nodeId",server.GetNodeId)
 		}
+
 		mapAPI := adminAPI.Group("/map")
 		{
 			mapAPI.GET("all",server.FetchMaps)
-			mapAPI.GET("name",server.FetchMapByName)
+			mapAPI.GET("name",server.FetchMapNames)
+			mapAPI.GET("filter/id",server.FetchMapByIdFilter)
+			mapAPI.GET("filter/name",server.FetchMapByNameFilter)
 
 		}
-
 	}
 
 	return route

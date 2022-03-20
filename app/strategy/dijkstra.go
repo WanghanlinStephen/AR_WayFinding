@@ -13,7 +13,7 @@ func reverseArrays(input []string)[]string{
 }
 
 //fixme:未获取数据
-func (g *Graph) Dijkstra(src string, dst string) (shortDis float64,lastPointer string,fullPathway []string) {
+func (g *Graph) Dijkstra(src string, dst string, mapId int) (shortDis float64,lastPointer string,fullPathway []string) {
 
 	// path:store previous node
 	path:=make(map[string]string)
@@ -43,6 +43,10 @@ func (g *Graph) Dijkstra(src string, dst string) (shortDis float64,lastPointer s
 		}
 
 		for nodeID := range g.NodeMap {
+			//check map Id
+			if g.NodeMap[nodeID].MapId != mapId {
+				continue
+			}
 			if nodeID == e {
 				continue
 			}
@@ -59,6 +63,10 @@ func (g *Graph) Dijkstra(src string, dst string) (shortDis float64,lastPointer s
 
 	//distance array
 	for nodeID := range g.NodeMap {
+		//check map Id
+		if g.NodeMap[nodeID].MapId != mapId {
+			continue
+		}
 		temp:=nodeID
 		for distance[temp]!=0 {
 			pathList[nodeID]=append(pathList[nodeID],temp)

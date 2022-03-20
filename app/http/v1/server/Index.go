@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"math"
 	"pro/app/cache"
 	"pro/app/common/response"
 	"pro/app/model"
@@ -32,8 +33,12 @@ func Search(c *gin.Context) {
 	destinationId:=c.Query("destination")
 	source:= strategy.CyberPortMap.NodeMap[sourceId]
 	destination:= strategy.CyberPortMap.NodeMap[destinationId]
-
-	shortestDistance,nextStep,_:=strategy.CyberPortMap.Dijkstra(source.NodeID(),destination.NodeID())
+	//fixme:补充上返回的楼数量+最近的楼梯口,不进行处理x
+	if source.MapId != destination.MapId{
+		response.Error(c,"destination.mapId != source.mapId")
+		return
+	}
+	shortestDistance,nextStep,_:=strategy.CyberPortMap.Dijkstra(source.NodeID(),destination.NodeID(),source.MapId)
 	nextNode:= strategy.CyberPortMap.NodeMap[nextStep]
 	angle:=strategy.GetAngle(source.Longitude,source.Latitude,source.IntersectionalAngle,nextNode.Longitude,nextNode.Latitude)
 	fmt.Printf("Source:%s to Destination%s with next step %s with a total weight %f, with an angle of %f",source,destination,nextStep,shortestDistance,angle)
@@ -53,7 +58,42 @@ func FetchPath(c *gin.Context) {
 	destinationId:=c.Query("destination")
 	source:= strategy.CyberPortMap.NodeMap[sourceId]
 	destination:= strategy.CyberPortMap.NodeMap[destinationId]
-	_,_,pathIds:=strategy.CyberPortMap.Dijkstra(source.NodeID(),destination.NodeID())
+	mapId := source.MapId
+	//source & destination floor doesn't match
+	closetestStaircaseId := ""
+	pathIds :=make([]string,0)
+	if source.MapId != destination.MapId{
+		//Fetch Floor ID:
+		//mapInstance,err := model.GetMapById(strconv.Itoa(destination.MapId))
+		//if err!=nil{
+		//	response.Error(c,"FetchMapByFilter 失败")
+		//	return
+		//}
+		//Fetch nearest staircase and return the path
+		//Step1:fetch all nodes with tag: staircase = true
+		staircaseList:=make([]string,0)
+		for _, node := range strategy.CyberPortMap.NodeMap {
+			if node.MapId != source.MapId{
+				continue
+			}
+			if node.IsStaircase == 0 {
+				continue
+			}
+			staircaseList=append(staircaseList,node.Id)
+		}
+		//Step2:find the closet staircase nearby
+		closetestStaircaseDistance := math.MaxFloat32
+		for _,staircaseId := range staircaseList {
+			shortestDistance,_,shorestFullPath:=strategy.CyberPortMap.Dijkstra(source.NodeID(),staircaseId,source.MapId)
+			if shortestDistance < closetestStaircaseDistance{
+				closetestStaircaseId = staircaseId
+				pathIds = shorestFullPath
+				closetestStaircaseDistance = shortestDistance
+			}
+		}
+	}else{
+		_,_,pathIds=strategy.CyberPortMap.Dijkstra(source.NodeID(),destination.NodeID(),mapId)
+	}
 	path:=make([]models.Node,0)
 	for _, pathId := range pathIds {
 		node:= strategy.CyberPortMap.NodeMap[pathId]
@@ -70,7 +110,11 @@ func FetchPath(c *gin.Context) {
 			IntersectionalAngle:    node.IntersectionalAngle,
 		})
 	}
-	responseData := &models.FetchPathOutput{Path: path}
+	responseData := &models.FetchPathOutput{
+		Path: path,
+		IsSameFloor:source.MapId == destination.MapId,
+		DestinationId:closetestStaircaseId,
+	}
 	response.Success(c,"ok",responseData)
 }
 
@@ -94,7 +138,6 @@ func Test(c *gin.Context) {
 }
 func GetNodes(c *gin.Context) {
 	//fixme:第二个版本加上页面的概念
-
 	nodeMap, err :=model.GetNodes();
 	if err != nil {
 		fmt.Println(err)
@@ -106,6 +149,39 @@ func GetNodes(c *gin.Context) {
 		nodes=append(nodes,node);
 	}
 	responseData := &models.GetNodesOutput{
+		Nodes:nodes,
+	}
+	response.Success(c,"ok",responseData)
+}
+
+func GetNodesByMapId(c *gin.Context) {
+	if err := c.ShouldBind(&models.GetNodesByMapId{}); err != nil {
+		fmt.Println(err.Error())
+		response.Error(c, "参数错误")
+		return
+	}
+	id := c.Query("id")
+	mapIdStr,_:= strconv.Atoi(id)
+	nodes:=make([]models.Node,0)
+	for _, node := range strategy.CyberPortMap.NodeMap {
+		if node.MapId != mapIdStr{
+			continue
+		}
+		nodeId , _ := strconv.Atoi(node.Id)
+		nodeLatitude, _ := strconv.ParseFloat(node.Latitude, 64)
+		nodeLongitude, _ := strconv.ParseFloat(node.Longitude, 64)
+		nodes=append(nodes,models.Node{
+			Id:                     nodeId,
+			NameEnglish:            node.NameEnglish,
+			NameChinese:            node.NameChinese,
+			NameTraditionalChinese: node.NameChineseTradition,
+			Latitude:               nodeLatitude,
+			Longitude:              nodeLongitude,
+			IntersectionalAngle:    node.IntersectionalAngle,
+			IsStaircase:            node.IsStaircase,
+		})
+	}
+	responseData := &models.GetNodesByMapIdOutput{
 		Nodes:nodes,
 	}
 	response.Success(c,"ok",responseData)
@@ -134,7 +210,6 @@ func GetNodeId(c *gin.Context) {
 
 }
 func GetConnections(c *gin.Context) {
-	//fixme:第二个版本加上页面的概念
 	connections, err :=model.GetConnectionsList();
 	if err != nil {
 		fmt.Println(err)
@@ -217,6 +292,33 @@ func AddConnection(c *gin.Context) {
 	response.Success(c,"ok","")
 }
 
+
+//func AddEmergent(c *gin.Context) {
+//	if err := c.ShouldBind(&models.AddEmergentInput{}); err != nil {
+//		fmt.Println(err.Error())
+//		response.Error(c, "参数错误")
+//		return
+//	}
+//	mapId,_ := strconv.Atoi(c.PostForm("mapId"))
+//	latitude,_:=strconv.ParseFloat(c.PostForm("nodeLatitude"), 64)
+//	longitude,_:=strconv.ParseFloat(c.PostForm("nodeLongitude"), 64)
+//	nodeId,err:=model.GetNodeID(models.Node{
+//		Latitude:               latitude,
+//		Longitude:              longitude,
+//	})
+//	if err!=nil{
+//		response.Error(c,"GetNodeID 失败")
+//		return
+//	}
+//	//add node information to map
+//	err =model.AddEmergentEntry(mapId,nodeId)
+//	if err!=nil{
+//		response.Error(c,"AddEmergentEntry 失败")
+//		return
+//	}
+//	response.Success(c,"ok","")
+//}
+
 func Delete(c *gin.Context) {
 	if err := c.ShouldBind(&models.DeleteInput{}); err != nil {
 		fmt.Println(err.Error())
@@ -224,6 +326,7 @@ func Delete(c *gin.Context) {
 		return
 	}
 	//Delete Node
+	//fixme:改造map使用
 	latitude,_:=strconv.ParseFloat(c.PostForm("nodeLatitude"), 64);
 	longitude,_:=strconv.ParseFloat(c.PostForm("nodeLongitude"), 64);
 	nodeId,err:=model.GetNodeID(models.Node{
@@ -327,7 +430,40 @@ func FetchMaps(c *gin.Context){
 	}
 	response.Success(c,"ok",responseData)
 }
-func FetchMapByName(c *gin.Context){
+func FetchMapNames(c *gin.Context){
+	maps,err := model.GetMaps()
+	if err!=nil{
+		response.Error(c,"FetchMaps 失败")
+		return
+	}
+	mapNamesList := make([]string,0)
+	for _,value := range maps{
+		mapNamesList=append(mapNamesList,value.Name)
+	}
+	responseData := &models.GetMapNamesOutput{
+		Names:     mapNamesList,
+	}
+	response.Success(c,"ok",responseData)
+}
+func FetchMapByIdFilter(c *gin.Context){
+	if err := c.ShouldBind(&models.GetMapByIdInput{}); err != nil {
+		fmt.Println(err.Error())
+		response.Error(c, "参数错误")
+		return
+	}
+	id := c.Query("id")
+	mapInstance,err := model.GetMapById(id)
+	if err!=nil{
+		response.Error(c,"FetchMapByIDFilter 失败")
+		return
+	}
+	responseData := &models.GetMapByNameOutput{
+		Map:     mapInstance,
+	}
+	response.Success(c,"ok",responseData)
+}
+
+func FetchMapByNameFilter(c *gin.Context){
 	if err := c.ShouldBind(&models.GetMapByNameInput{}); err != nil {
 		fmt.Println(err.Error())
 		response.Error(c, "参数错误")
@@ -336,11 +472,12 @@ func FetchMapByName(c *gin.Context){
 	name := c.Query("name")
 	mapInstance,err := model.GetMapByName(name)
 	if err!=nil{
-		response.Error(c,"FetchMapByName 失败")
+		response.Error(c,"FetchMapByNameFilter 失败")
 		return
 	}
 	responseData := &models.GetMapByNameOutput{
 		Map:     mapInstance,
 	}
 	response.Success(c,"ok",responseData)
+
 }
