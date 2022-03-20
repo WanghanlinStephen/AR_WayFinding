@@ -18,5 +18,6 @@ type FetchPathOutput struct {
 	Path []Node
 	IsSameFloor bool
 	DestinationId string
+	Floor int
 
 }

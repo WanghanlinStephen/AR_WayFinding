@@ -61,14 +61,16 @@ func FetchPath(c *gin.Context) {
 	mapId := source.MapId
 	//source & destination floor doesn't match
 	closetestStaircaseId := ""
+	destinationFloor := 0
 	pathIds :=make([]string,0)
 	if source.MapId != destination.MapId{
 		//Fetch Floor ID:
-		//mapInstance,err := model.GetMapById(strconv.Itoa(destination.MapId))
-		//if err!=nil{
-		//	response.Error(c,"FetchMapByFilter 失败")
-		//	return
-		//}
+		mapInstance,err := model.GetMapById(strconv.Itoa(destination.MapId))
+		if err!=nil{
+			response.Error(c,"FetchMapByFilter 失败")
+			return
+		}
+		destinationFloor = mapInstance.Floor
 		//Fetch nearest staircase and return the path
 		//Step1:fetch all nodes with tag: staircase = true
 		staircaseList:=make([]string,0)
@@ -114,6 +116,7 @@ func FetchPath(c *gin.Context) {
 		Path: path,
 		IsSameFloor:source.MapId == destination.MapId,
 		DestinationId:closetestStaircaseId,
+		Floor:destinationFloor,
 	}
 	response.Success(c,"ok",responseData)
 }
