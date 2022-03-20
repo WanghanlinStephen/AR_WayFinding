@@ -301,8 +301,8 @@ func AddStaircase(c *gin.Context) {
 		return
 	}
 	mapId,_ := strconv.Atoi(c.PostForm("mapId"))
-	latitude:=c.PostForm("nodeLatitude")
-	longitude:=c.PostForm("nodeLongitude")
+	latitude:=c.PostForm("latitude")
+	longitude:=c.PostForm("longitude")
 	nodeIdStr := ""
 	for _, node := range strategy.CyberPortMap.NodeMap {
 		if node.MapId != mapId{
