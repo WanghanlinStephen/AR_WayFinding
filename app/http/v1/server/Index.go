@@ -122,8 +122,6 @@ func FetchPath(c *gin.Context) {
 }
 
 
-
-
 func Test(c *gin.Context) {
 	type testParams struct {
 		Id   int    `json:"id"   binding:"required"`
@@ -295,6 +293,35 @@ func AddConnection(c *gin.Context) {
 	response.Success(c,"ok","")
 }
 
+
+func AddStaircase(c *gin.Context) {
+	if err := c.ShouldBind(&models.AddStaircaseInput{}); err != nil {
+		fmt.Println(err.Error())
+		response.Error(c, "参数错误")
+		return
+	}
+	mapId,_ := strconv.Atoi(c.PostForm("mapId"))
+	latitude:=c.PostForm("nodeLatitude")
+	longitude:=c.PostForm("nodeLongitude")
+	nodeIdStr := ""
+	for _, node := range strategy.CyberPortMap.NodeMap {
+		if node.MapId != mapId{
+			continue
+		}
+		if node.Latitude != latitude && node.Longitude != longitude {
+			continue
+		}
+		nodeIdStr = node.Id
+	}
+	nodeId,_:= strconv.Atoi(nodeIdStr)
+	//change is_staircase = 1
+	err :=model.AddIsStaircase(mapId,nodeId)
+	if err!=nil{
+		response.Error(c,"AddStaircaseEntry 失败")
+		return
+	}
+	response.Success(c,"ok","")
+}
 
 //func AddEmergent(c *gin.Context) {
 //	if err := c.ShouldBind(&models.AddEmergentInput{}); err != nil {

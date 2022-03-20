@@ -65,12 +65,12 @@ func GetNodeID(node models.Node) (int,error) {
 	}
 	return nodeId, nil
 }
-//func AddEmergentEntry(mapId int ,nodeId int) error {
-//	if _, err := Db.Exec("update map set emergent_entry_node_id = ? where id = ? ",nodeId,mapId); err != nil {
-//		return err
-//	}
-//	return nil
-//}
+func AddIsStaircase(mapId int ,nodeId int) error {
+	if _, err := Db.Exec("update node set is_staircase= ? where id = ? ",1,nodeId); err != nil {
+		return err
+	}
+	return nil
+}
 
 func GetMaps()([]models.Map,error){
 	rows,err := Db.Query("select * from map")

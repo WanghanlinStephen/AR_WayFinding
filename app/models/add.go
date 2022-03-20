@@ -15,8 +15,8 @@ type AddConnectionInput struct {
 	Weight int
 }
 
-//type AddEmergentInput struct {
-//	Latitude float64
-//	Longitude float64
-//	MapId int
-//}
+type AddStaircaseInput struct {
+	Latitude float64
+	Longitude float64
+	MapId int
+}

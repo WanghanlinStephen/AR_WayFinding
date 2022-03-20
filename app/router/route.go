@@ -38,7 +38,7 @@ func router(route *gin.Engine) *gin.Engine {
 		{ 
 			addAPI.POST("node",server.AddNode)
 			addAPI.POST("connection",server.AddConnection)
-			//addAPI.POST("staircase",server.AddStaircase)
+			addAPI.POST("staircase",server.AddStaircase)
 			//addAPI.POST("emergent",server.AddEmergent)
 		}
 
