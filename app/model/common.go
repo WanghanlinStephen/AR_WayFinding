@@ -96,12 +96,14 @@ func GetMapById(id string)(models.Map,error){
 }
 
 
-func GetMapByName(name string)(models.Map,error){
+func GetMapsByName(name string)([]models.Map,error){
 	rows,err := Db.Query("select * from map where map.name=?",name)
 	mapInstance := models.Map{}
+	var mapInstanceList = make([]models.Map,0)
 	for rows.Next(){
 		err = rows.Scan(&mapInstance.Id,&mapInstance.Url,&mapInstance.Name,&mapInstance.Floor)
 		checkErr(err)
+		mapInstanceList=append(mapInstanceList,mapInstance)
 	}
-	return mapInstance,nil
+	return mapInstanceList,nil
 }

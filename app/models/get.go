@@ -58,8 +58,11 @@ type GetMapByIdInput struct {
 type GetMapByNameInput struct {
 	Name string
 }
-type GetMapByNameOutput struct {
+type GetMapByIdOutput struct {
 	Map Map
+}
+type GetMapByNameOutput struct {
+	Map []Map
 }
 type GetMapNamesOutput struct {
 	Names []string

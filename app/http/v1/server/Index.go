@@ -487,7 +487,7 @@ func FetchMapByIdFilter(c *gin.Context){
 		response.Error(c,"FetchMapByIDFilter 失败")
 		return
 	}
-	responseData := &models.GetMapByNameOutput{
+	responseData := &models.GetMapByIdOutput{
 		Map:     mapInstance,
 	}
 	response.Success(c,"ok",responseData)
@@ -500,13 +500,13 @@ func FetchMapByNameFilter(c *gin.Context){
 		return
 	}
 	name := c.Query("name")
-	mapInstance,err := model.GetMapByName(name)
+	mapInstanceList,err := model.GetMapsByName(name)
 	if err!=nil{
 		response.Error(c,"FetchMapByNameFilter 失败")
 		return
 	}
 	responseData := &models.GetMapByNameOutput{
-		Map:     mapInstance,
+		Map:     mapInstanceList,
 	}
 	response.Success(c,"ok",responseData)
 
