@@ -15,3 +15,8 @@ type DeleteConnectionByNodeInput struct {
 type DeleteInput struct {
 	Id int
 }
+
+type DeleteMapByNameAndFloorInput struct {
+	Name string
+	Floor int
+}

@@ -13,12 +13,18 @@ func checkErr(err error) {
 }
 
 func AddNode(c *gin.Context,node models.AddNodeInput) error{
-	if _, err := Db.Exec("insert into node (name_english,name_chinese,name_traditional_chinese,latitude,longitude,intersectional_angle) VALUES (?,?,?,?,?,?);",node.NameEnglish,node.NameChinese,node.NameTraditionalChinese,node.Longitude,node.Latitude,node.IntersectionalAngle); err != nil {
+	if _, err := Db.Exec("insert into node (name_english,name_chinese,name_traditional_chinese,latitude,longitude,intersectional_angle) VALUES (?,?,?,?,?,?);",node.NameEnglish,node.NameChinese,node.NameTraditionalChinese,node.Latitude,node.Longitude,node.IntersectionalAngle); err != nil {
 		return err
 	}
 	return nil
 }
 
+func AddMap(c *gin.Context,mapInstance models.AddMapInput) error{
+	if _, err := Db.Exec("insert into map (url,name,floor) VALUES (?,?,?);",mapInstance.Url,mapInstance.Name,mapInstance.Floor); err != nil {
+		return err
+	}
+	return nil
+}
 
 func DeleteNode(c *gin.Context,node models.DeleteNodeInput) error{
 	//fixme：search layer
@@ -47,8 +53,14 @@ func DeleteConnectionByNode(c *gin.Context,node models.DeleteConnectionByNodeInp
 	return nil
 }
 
+func DeleteMapByNameAndFloor(c *gin.Context,mapInstance models.DeleteMapByNameAndFloorInput) error {
+	if _, err := Db.Exec("delete from map where name=? and floor=?",mapInstance.Name,mapInstance.Floor); err != nil {
+		return err
+	}
+	return nil
+}
 func AddConnection(c *gin.Context,connection models.AddConnectionInput) error{
-	if _, err := Db.Exec("insert into connection (source,destination,weight) VALUES (?,?,?);",connection.SourceId,connection.DestinationId,connection.Weight); err != nil {
+	if _, err := Db.Exec("insert into connection (source,destination,weight,map_id) VALUES (?,?,?,?);",connection.SourceId,connection.DestinationId,connection.Weight,connection.MapId); err != nil {
 		return err
 	}
 	return nil

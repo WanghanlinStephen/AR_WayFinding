@@ -222,6 +222,26 @@ func GetConnections(c *gin.Context) {
 	response.Success(c,"ok",responseData)
 }
 
+func GetConnectionsByMapId(c *gin.Context) {
+	if err := c.ShouldBind(&models.GetNodesByMapId{}); err != nil {
+		fmt.Println(err.Error())
+		response.Error(c, "参数错误")
+		return
+	}
+	id := c.Query("id")
+	mapId,_:= strconv.Atoi(id)
+	connections, err :=model.GetConnectionsListByMapId(mapId)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	responseData := &models.GetConnectionsOutput{
+		Connections: connections,
+	}
+	response.Success(c,"ok",responseData)
+}
+
+
 
 //Admin Section
 func AddNode(c *gin.Context) {
@@ -246,22 +266,27 @@ func AddNode(c *gin.Context) {
 		response.Error(c,"AddNode 失败")
 		return
 	}
+	//todo:refresh map
+	strategy.Initialization()
 	response.Success(c,"ok","")
 }
 
 
+
+
 func AddConnection(c *gin.Context) {
-	if err := c.ShouldBind(&models.AddConnectionInput{}); err != nil {
-		fmt.Println(err.Error())
-		response.Error(c, "参数错误")
-		return
-	}
+	//if err := c.ShouldBind(&models.AddConnectionInput{}); err != nil {
+	//	fmt.Println(err.Error())
+	//	response.Error(c, "参数错误")
+	//	return
+	//}
 	//Modify Database
-	sourceLatitude,_:=strconv.ParseFloat(c.PostForm("sourceLatitude"), 64);
-	sourceLongitude,_:=strconv.ParseFloat(c.PostForm("sourceLongitude"), 64);
-	destinationLatitude,_:=strconv.ParseFloat(c.PostForm("destinationLatitude"), 64);
-	destinationLongitude,_:=strconv.ParseFloat(c.PostForm("destinationLongitude"), 64);
-	weight,_:=strconv.Atoi(c.PostForm("weight"));
+	sourceLatitude,_:=strconv.ParseFloat(c.PostForm("sourceLatitude"), 64)
+	sourceLongitude,_:=strconv.ParseFloat(c.PostForm("sourceLongitude"), 64)
+	destinationLatitude,_:=strconv.ParseFloat(c.PostForm("destinationLatitude"), 64)
+	destinationLongitude,_:=strconv.ParseFloat(c.PostForm("destinationLongitude"), 64)
+	weight,_:=strconv.ParseFloat(c.PostForm("weight"),64)
+	mapId,_:=strconv.Atoi(c.PostForm("mapId"))
 	//fixme:获取sourceID 和 destinationID
 	sourceId,err := model.GetNodeID(models.Node{
 		Latitude:               sourceLatitude,
@@ -284,12 +309,15 @@ func AddConnection(c *gin.Context) {
 		SourceId:      sourceId,
 		DestinationId: destinationId ,
 		Weight:        weight,
+		MapId:		   mapId,
 	}
 	err=model.AddConnection(c,newConnection)
 	if err!=nil{
 		response.Error(c,"AddConnection 失败")
 		return
 	}
+	//todo:refresh map
+	strategy.Initialization()
 	response.Success(c,"ok","")
 }
 
@@ -304,6 +332,7 @@ func AddStaircase(c *gin.Context) {
 	latitude:=c.PostForm("latitude")
 	longitude:=c.PostForm("longitude")
 	nodeIdStr := ""
+	//fixme:此时map没有更新,无法找到进行写操作
 	for _, node := range strategy.CyberPortMap.NodeMap {
 		if node.MapId != mapId{
 			continue
@@ -318,6 +347,27 @@ func AddStaircase(c *gin.Context) {
 	err :=model.AddIsStaircase(mapId,nodeId)
 	if err!=nil{
 		response.Error(c,"AddStaircaseEntry 失败")
+		return
+	}
+	response.Success(c,"ok","")
+}
+
+func AddMap(c *gin.Context) {
+	if err := c.ShouldBind(&models.AddMapInput{}); err != nil {
+		fmt.Println(err.Error())
+		response.Error(c, "参数错误")
+		return
+	}
+	//Modify Database
+	floor, _ := strconv.Atoi(c.PostForm("Floor"))
+	newMap:=models.AddMapInput{
+		Url:   c.PostForm("Url"),
+		Name:  c.PostForm("Name"),
+		Floor: floor,
+	}
+	err:=model.AddMap(c,newMap)
+	if err!=nil{
+		response.Error(c,"AddMap 失败")
 		return
 	}
 	response.Success(c,"ok","")
@@ -396,6 +446,8 @@ func Delete(c *gin.Context) {
 			return
 		}
 	}
+	//todo:refresh map
+	strategy.Initialization()
 	response.Success(c,"ok","")
 }
 
@@ -436,8 +488,31 @@ func DeleteConnection(c *gin.Context) {
 		response.Error(c,"DeleteConnection 失败")
 		return
 	}
+	//todo:refresh map
+	strategy.Initialization()
 	response.Success(c,"ok","")
 }
+
+func DeleteMap(c *gin.Context) {
+	if err := c.ShouldBind(&models.DeleteMapByNameAndFloorInput{}); err != nil {
+		fmt.Println(err.Error())
+		response.Error(c, "参数错误")
+		return
+	}
+
+	floor, _ := strconv.Atoi(c.PostForm("floor"))
+	mapInstance:=models.DeleteMapByNameAndFloorInput{
+		Name:  c.PostForm("Name"),
+		Floor: floor,
+	}
+	err := model.DeleteMapByNameAndFloor(c, mapInstance)
+	if err!=nil{
+		response.Error(c,"DeleteConnection 失败")
+		return
+	}
+	response.Success(c,"ok","")
+}
+
 func Modify(c *gin.Context) {
 	if err := c.ShouldBind(&models.ModifyInput{}); err != nil {
 		fmt.Println(err.Error())
@@ -448,6 +523,8 @@ func Modify(c *gin.Context) {
 
 	response.Success(c,"ok","")
 }
+
+
 //no input required
 func FetchMaps(c *gin.Context){
 	maps,err := model.GetMaps()
@@ -467,9 +544,16 @@ func FetchMapNames(c *gin.Context){
 		return
 	}
 	mapNamesList := make([]string,0)
+	mapNameMap := make(map[string]bool)
+
 	for _,value := range maps{
+		if _, ok := mapNameMap[value.Name]; ok {
+			continue
+		}
 		mapNamesList=append(mapNamesList,value.Name)
+		mapNameMap[value.Name]=true
 	}
+
 	responseData := &models.GetMapNamesOutput{
 		Names:     mapNamesList,
 	}
@@ -510,4 +594,24 @@ func FetchMapByNameFilter(c *gin.Context){
 	}
 	response.Success(c,"ok",responseData)
 
+}
+
+func FetchMapIdByNodeId(c *gin.Context){
+	if err := c.ShouldBind(&models.GetMapIdByNodeIdInput{}); err != nil {
+		fmt.Println(err.Error())
+		response.Error(c, "参数错误")
+		return
+	}
+	nodeId := c.Query("id")
+	mapId := 0
+	for _, node := range strategy.CyberPortMap.NodeMap{
+		if node.Id == nodeId{
+			mapId = node.MapId
+		}
+	}
+
+	responseData := &models.GetMapIdByNodeIdOutput{
+		Id:     mapId,
+	}
+	response.Success(c,"ok",responseData)
 }

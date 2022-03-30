@@ -12,11 +12,18 @@ type AddNodeInput struct {
 type AddConnectionInput struct {
 	SourceId int
 	DestinationId int
-	Weight int
+	Weight float64
+	MapId int
 }
 
 type AddStaircaseInput struct {
 	Latitude float64
 	Longitude float64
 	MapId int
+}
+
+type AddMapInput struct {
+	Url string
+	Name string
+	Floor int
 }

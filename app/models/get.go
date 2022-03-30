@@ -17,7 +17,7 @@ type Connection struct {
 	Id int
 	Source Node
 	Destination Node
-	Time int
+	Time float64
 	MapId int
 }
 
@@ -66,4 +66,10 @@ type GetMapByNameOutput struct {
 }
 type GetMapNamesOutput struct {
 	Names []string
+}
+type GetMapIdByNodeIdInput struct {
+	Id int
+}
+type GetMapIdByNodeIdOutput struct {
+	Id int
 }

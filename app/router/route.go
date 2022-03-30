@@ -23,7 +23,11 @@ func router(route *gin.Engine) *gin.Engine {
 		visitorAPI.GET("test", server.Test)
 		visitorAPI.GET("search",server.Search)
 		visitorAPI.GET("path",server.FetchPath)
-		visitorAPI.GET("connections",server.GetConnections)
+		connectionAPI := visitorAPI.Group("/connections")
+		{
+			connectionAPI.GET("all",server.GetConnections)
+			connectionAPI.GET("map",server.GetConnectionsByMapId)
+		}
 
 		nodeAPI := visitorAPI.Group("/nodes")
 		{
@@ -39,6 +43,7 @@ func router(route *gin.Engine) *gin.Engine {
 			addAPI.POST("node",server.AddNode)
 			addAPI.POST("connection",server.AddConnection)
 			addAPI.POST("staircase",server.AddStaircase)
+			addAPI.POST("map",server.AddMap)
 			//addAPI.POST("emergent",server.AddEmergent)
 		}
 
@@ -47,6 +52,7 @@ func router(route *gin.Engine) *gin.Engine {
 			//deleteAPI.DELETE("node",server.DeleteNode)
 			deleteAPI.POST("connection",server.DeleteConnection)
 			deleteAPI.POST("both",server.Delete)
+			deleteAPI.POST("map",server.DeleteMap)
 		}
 
 		indexAPI := adminAPI.Group("/index")
@@ -56,11 +62,12 @@ func router(route *gin.Engine) *gin.Engine {
 
 		mapAPI := adminAPI.Group("/map")
 		{
+			//fixme:1 给我nodeID 给你 mapID
 			mapAPI.GET("all",server.FetchMaps)
 			mapAPI.GET("name",server.FetchMapNames)
 			mapAPI.GET("filter/id",server.FetchMapByIdFilter)
 			mapAPI.GET("filter/name",server.FetchMapByNameFilter)
-
+			mapAPI.GET("nodeId",server.FetchMapIdByNodeId)
 		}
 	}
 
