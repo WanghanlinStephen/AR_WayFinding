@@ -77,6 +77,17 @@ func GetNodeID(node models.Node) (int,error) {
 	}
 	return nodeId, nil
 }
+
+func GetBuildingNameByMapId(mapId int) (string,error) {
+	var buildingName string
+	rows,err := Db.Query("select name from map where id=?",mapId)
+	for rows.Next(){
+		err = rows.Scan(&buildingName)
+		checkErr(err)
+	}
+	return buildingName, nil
+}
+
 func AddIsStaircase(mapId int ,nodeId int) error {
 	if _, err := Db.Exec("update node set is_staircase= ? where id = ? ",1,nodeId); err != nil {
 		return err

@@ -155,6 +155,30 @@ func GetNodes(c *gin.Context) {
 	response.Success(c,"ok",responseData)
 }
 
+func FetchNodesByMapId(id int) []models.Node{
+
+	nodes:=make([]models.Node,0)
+	for _, node := range strategy.CyberPortMap.NodeMap {
+		if node.MapId != id{
+			continue
+		}
+		nodeId , _ := strconv.Atoi(node.Id)
+		nodeLatitude, _ := strconv.ParseFloat(node.Latitude, 64)
+		nodeLongitude, _ := strconv.ParseFloat(node.Longitude, 64)
+		nodes=append(nodes,models.Node{
+			Id:                     nodeId,
+			NameEnglish:            node.NameEnglish,
+			NameChinese:            node.NameChinese,
+			NameTraditionalChinese: node.NameChineseTradition,
+			Latitude:               nodeLatitude,
+			Longitude:              nodeLongitude,
+			IntersectionalAngle:    node.IntersectionalAngle,
+			IsStaircase:            node.IsStaircase,
+		})
+	}
+	return nodes
+}
+
 func GetNodesByMapId(c *gin.Context) {
 	if err := c.ShouldBind(&models.GetNodesByMapId{}); err != nil {
 		fmt.Println(err.Error())
@@ -187,6 +211,32 @@ func GetNodesByMapId(c *gin.Context) {
 	}
 	response.Success(c,"ok",responseData)
 }
+
+
+func GetNodesByBuildingName(c *gin.Context){
+	//fetch all mapIds with same building name
+	if err := c.ShouldBind(&models.GetNodesByBuildingNameInput{}); err != nil {
+		fmt.Println(err.Error())
+		response.Error(c, "参数错误")
+		return
+	}
+	name := c.Query("name")
+	mapInstanceList,err := model.GetMapsByName(name)
+	if err!=nil{
+		response.Error(c,"FetchMapByNameFilter 失败")
+		return
+	}
+	nodesList:=make([]models.Node,0)
+	for _, mapInstance:= range mapInstanceList {
+		nodes:=FetchNodesByMapId(mapInstance.Id)
+		nodesList=append(nodesList,nodes...);
+	}
+	responseData := &models.GetNodesByBuildingNameOutput{
+		Nodes: nodesList,
+	}
+	response.Success(c,"ok",responseData)
+}
+
 
 func GetNodeId(c *gin.Context) {
 	if err := c.ShouldBind(&models.Node{}); err != nil {
@@ -612,6 +662,30 @@ func FetchMapIdByNodeId(c *gin.Context){
 
 	responseData := &models.GetMapIdByNodeIdOutput{
 		Id:     mapId,
+	}
+	response.Success(c,"ok",responseData)
+}
+
+func FecthBuildingNameByNodeId(c *gin.Context){
+	if err := c.ShouldBind(&models.GetBuildingNameByNodeIdInput{}); err != nil {
+		fmt.Println(err.Error())
+		response.Error(c, "参数错误")
+		return
+	}
+	nodeId := c.Query("id")
+	mapId := 0
+	for _, node := range strategy.CyberPortMap.NodeMap{
+		if node.Id == nodeId{
+			mapId = node.MapId
+		}
+	}
+	buildingName,err:= model.GetBuildingNameByMapId(mapId)
+	if err!=nil{
+		response.Error(c,"FecthBuildingNameByNodeId 失败")
+		return
+	}
+	responseData := &models.GetBuildingNameByNodeIdOutput{
+		Name:  buildingName,
 	}
 	response.Success(c,"ok",responseData)
 }

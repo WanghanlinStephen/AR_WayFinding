@@ -73,3 +73,15 @@ type GetMapIdByNodeIdInput struct {
 type GetMapIdByNodeIdOutput struct {
 	Id int
 }
+type GetBuildingNameByNodeIdInput struct {
+	Id int
+}
+type GetBuildingNameByNodeIdOutput struct {
+	Name string
+}
+type GetNodesByBuildingNameInput struct {
+	Name string
+}
+type GetNodesByBuildingNameOutput struct {
+	Nodes []Node
+}

@@ -33,6 +33,7 @@ func router(route *gin.Engine) *gin.Engine {
 		{
 			nodeAPI.GET("all",server.GetNodes)
 			nodeAPI.GET("map",server.GetNodesByMapId)
+			nodeAPI.GET("building",server.GetNodesByBuildingName)
 		}
 	}
 	//授权用户, 需要登陆
@@ -68,6 +69,7 @@ func router(route *gin.Engine) *gin.Engine {
 			mapAPI.GET("filter/id",server.FetchMapByIdFilter)
 			mapAPI.GET("filter/name",server.FetchMapByNameFilter)
 			mapAPI.GET("nodeId",server.FetchMapIdByNodeId)
+			mapAPI.GET("building",server.FecthBuildingNameByNodeId)
 		}
 	}
 
