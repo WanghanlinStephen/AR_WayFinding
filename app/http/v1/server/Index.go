@@ -34,16 +34,55 @@ func Search(c *gin.Context) {
 	source:= strategy.CyberPortMap.NodeMap[sourceId]
 	destination:= strategy.CyberPortMap.NodeMap[destinationId]
 	//fixme:补充上返回的楼数量+最近的楼梯口,不进行处理x
+	closetestStaircaseId := ""
+	destinationFloor := 0
+
 	if source.MapId != destination.MapId{
-		response.Error(c,"destination.mapId != source.mapId")
-		return
+		//Fetch Floor ID:
+		mapInstance,err := model.GetMapById(strconv.Itoa(destination.MapId))
+		if err!=nil{
+			response.Error(c,"FetchMapByFilter 失败")
+			return
+		}
+		destinationFloor = mapInstance.Floor
+		//Fetch nearest staircase and return the path
+		//Step1:fetch all nodes with tag: staircase = true
+		staircaseList:=make([]string,0)
+		for _, node := range strategy.CyberPortMap.NodeMap {
+			if node.MapId != source.MapId{
+				continue
+			}
+			if node.IsStaircase == 0 {
+				continue
+			}
+			staircaseList=append(staircaseList,node.Id)
+		}
+		//Step2:find the closet staircase nearby
+		closetestStaircaseDistance := math.MaxFloat32
+		for _,staircaseId := range staircaseList {
+			shortestDistance,_,_:=strategy.CyberPortMap.Dijkstra(source.NodeID(),staircaseId,source.MapId)
+			if shortestDistance < closetestStaircaseDistance{
+				closetestStaircaseId = staircaseId
+				closetestStaircaseDistance = shortestDistance
+			}
+		}
 	}
-	shortestDistance,nextStep,_:=strategy.CyberPortMap.Dijkstra(source.NodeID(),destination.NodeID(),source.MapId)
+
+	//check whether same floor
+	shortestDistance:=0.0
+	nextStep:=""
+	if source.MapId != destination.MapId{
+		shortestDistance,nextStep,_=strategy.CyberPortMap.Dijkstra(source.NodeID(),closetestStaircaseId,source.MapId)
+	}else{
+		shortestDistance,nextStep,_=strategy.CyberPortMap.Dijkstra(source.NodeID(),destination.NodeID(),source.MapId)
+	}
 	nextNode:= strategy.CyberPortMap.NodeMap[nextStep]
 	angle:=strategy.GetAngle(source.Longitude,source.Latitude,source.IntersectionalAngle,nextNode.Longitude,nextNode.Latitude)
 	fmt.Printf("Source:%s to Destination%s with next step %s with a total weight %f, with an angle of %f",source,destination,nextStep,shortestDistance,angle)
 	responseData := &models.SearchOutput{
 		Angle:     angle,
+		IsSameFloor: source.MapId == destination.MapId,
+		Floor:     destinationFloor,
 	}
 	response.Success(c,"ok",responseData)
 }

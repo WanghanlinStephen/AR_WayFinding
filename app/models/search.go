@@ -7,6 +7,8 @@ type SearchInput struct {
 
 type SearchOutput struct {
 	Angle 	float64
+	IsSameFloor bool
+	Floor int
 }
 
 type FetchPathInput struct {
@@ -19,5 +21,4 @@ type FetchPathOutput struct {
 	IsSameFloor bool
 	DestinationId string
 	Floor int
-
 }
